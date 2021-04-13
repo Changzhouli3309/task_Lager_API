@@ -77,22 +77,4 @@ public class ProductController {
 		return pro_ser.deleteProduct(id) ? ResponseEntity.ok().build() : ResponseEntity.badRequest().build();
 	}
 
-	/*
-	 * Exception handler for the validation of ProductForm It handles the
-	 * MethodArumentNotValidException that gets thrown when it finds fields in the
-	 * Form object that breach the contract that the validation annotations inside
-	 * the Form classes define.
-	 * 
-	 */
-	@ResponseStatus(HttpStatus.BAD_REQUEST)
-	@ExceptionHandler(MethodArgumentNotValidException.class)
-	public Map<String, String> productValidationException(MethodArgumentNotValidException e) {
-		Map<String, String> errors = new HashMap<>();
-		e.getBindingResult().getAllErrors().forEach(error -> {
-			String fieldName = ((FieldError) error).getField();
-			String message = error.getDefaultMessage();
-			errors.put(fieldName, message);
-		});
-		return errors;
-	}
 }
