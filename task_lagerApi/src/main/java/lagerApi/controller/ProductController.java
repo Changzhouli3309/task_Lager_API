@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 import lagerApi.entity.Product;
 import lagerApi.model.request.ProductRequestModel;
 import lagerApi.service.ProductService;
+import lagerApi.service.exception.*;
 
 @RestController
 @RequestMapping("products") // http://localhost:8080/products
@@ -31,7 +32,11 @@ public class ProductController {
 	@GetMapping("/all")
 	public ResponseEntity<List<Product>> getProducts() {
 		List<Product> products = pro_ser.findAll();
-		return products.isEmpty() ? ResponseEntity.noContent().build() : ResponseEntity.ok(products);
+		if (products.isEmpty()) {
+			throw new NoContentException("204 No Content");
+		} else {
+			return ResponseEntity.ok(products);
+		}
 	}
 
 	@GetMapping("/{id}")
@@ -40,16 +45,17 @@ public class ProductController {
 		if (p != null) {
 			return ResponseEntity.ok(p);
 		} else {
-			return ResponseEntity.notFound().build();
+			throw new NotFoundException("404 Not Found");
 		}
 	}
 
 	@PostMapping
 	public ResponseEntity<Product> createProduct(@Validated @RequestBody ProductRequestModel newPro) {
 		if (newPro == null || newPro.getCost() < 0) {
-			return ResponseEntity.badRequest().build();
+			throw new BadRequestException("400 Bad Request");
 		} else {
-			Product saved = pro_ser.createProduct(new Product(newPro.getName(), newPro.getCost(), newPro.getCategory()));
+			Product saved = pro_ser
+					.createProduct(new Product(newPro.getName(), newPro.getCost(), newPro.getCategory()));
 
 			return ResponseEntity.status(HttpStatus.CREATED).body(saved);
 		}
@@ -58,8 +64,8 @@ public class ProductController {
 
 	@PutMapping("/{id}")
 	public ResponseEntity<Product> updateProduct(@PathVariable String id, @RequestBody ProductRequestModel updated) {
-		if (updated == null || updated == null || updated.getCost() < 0) {
-			return ResponseEntity.badRequest().build();
+		if (id == null || updated == null || updated.getCost() < 0) {
+			throw new BadRequestException("400 Bad Request");
 		}
 		return ResponseEntity
 				.ok(pro_ser.updateProduct(id, updated.getName(), updated.getCost(), updated.getCategory()));
@@ -67,7 +73,11 @@ public class ProductController {
 
 	@DeleteMapping("/{id}")
 	public ResponseEntity<Product> deleteProduct(@PathVariable String id) {
-		return pro_ser.deleteProduct(id) ? ResponseEntity.ok().build() : ResponseEntity.badRequest().build();
+		if (pro_ser.deleteProduct(id)) {
+			return ResponseEntity.ok().build();
+		} else {
+			throw new BadRequestException("400 Bad Request");
+		}
 	}
 
 }
